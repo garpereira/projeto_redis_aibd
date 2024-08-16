@@ -40,8 +40,8 @@ Funções auxiliares:
 1. Clone o repositório:
 
 ``` bash
-    git clone https://github.com/seu-usuario/shopipipipi.git
-    cd shopipipipi
+    git clone https://github.com/seu-usuario/projeto_redis_aibd.git
+    cd projeto_redis_aibd
 ```
 2. Crie um ambiente virtual e ative-o:
 
@@ -53,7 +53,7 @@ Funções auxiliares:
 3. Instale as dependências:
 
 ```bash
-    pip install flask redis
+    pip install -r requirements.txt
 ```
 
 4. Inicie o servidor Redis:
