@@ -1,10 +1,92 @@
 {% extends 'base.html' %}
 
-{% block head %}
+{% block title %}
     <title> Shopipipipi </title>
 {% endblock %}
 
 {% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        CADASTRAR PRODUTO
+                    </div>
+                </div>
+                <div class="row">
+                    <form method="POST" action="{{ url_for('handle_create_product') }}">
+                        
+                        <div class="form-group mb-3">
+                            <label for="nome">Nome do Produto:</label>
+                            <input class="form-control w-50" type="text" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="valor">Valor:</label>
+                                    <input class="form-control w-100" type="number" id="valor" name="valor" required>
+                                </div>
+                                <div class="col-3">
+                                    <label for="quantidade">Quantidade:</label>
+                                    <input class="form-control w-100" type="number" id="quantidade" name="quantidade" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="imagem">Imagem do Produto:</label>
+                            <input class="form-control-file" type="file" id="imagem" name="imagem">
+                        </div>
+                        <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
+                    </form>
+                </div>
+                {% if message %}
+                <div class="row" id="message">
+                    <p class="message">{{ message }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        CADASTRAR PROMOÇÃO
+                    </div>
+                </div>
+                <div class="row">
+                    <form method="POST" action="{{ url_for('handle_create_discount') }}">
+                        <div class="form-group mb-3">
+                            <!-- Dropdown com Produtos -->
+                            <label for="produto">Escolha um Produto:</label>
+                            <select id="produto" name="produto" class="form-control w-75">
+                                {% for product_name in product_names %}
+                                    <option value="{{ product_name }}">{{ product_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mb-3">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="desconto">Desconto (%):</label>
+                                    <input class="form-control w-100" type="number" id="desconto" name="desconto" required>
+                                </div>
+                                <div class="col-4">
+                                    <label for="tempo_expiracao">Duração (segundos):</label>
+                                    <input class="form-control w-100" type="text" id="tempo_expiracao" name="tempo_expiracao" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mb-3" style="height: 2rem"></div>
+                        <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
+                    </form>
+                </div>
+                {% if message_promo %}
+                <div class="row" id="message_promo">
+                    <p class="message">{{ message_promo }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
     <section id="product">
         <div class="container">
             <div class="row">
@@ -21,4 +103,23 @@
             </div>
         </div>
     </section>
+
+    <script>
+        // Função para ocultar a mensagem após 3 segundos
+        document.addEventListener('DOMContentLoaded', function() {
+            var messageElement = document.getElementById('message');
+            var messageElementPromo = document.getElementById('message_promo')
+            if (messageElement){
+                setTimeout(function() {
+                    messageElement.style.display = 'none';
+                }, 3000);
+            }
+
+            if (messageElementPromo){
+                setTimeout(function() {
+                    messageElementPromo.style.display = 'none';
+                }, 3000);
+            }
+        });
+    </script>
 {% endblock %}
