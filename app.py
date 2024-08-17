@@ -11,15 +11,15 @@ redis_cnn = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True
 def index():
 
     # Recuperar todos os produtos
-    product_names = sorted(get_product_names())
+    products = get_all_products()
 
-    if not product_names:
-        product_names = {'Nenhum produto cadastrado':''}
+    if not products:
+        products = {'Nenhum produto cadastrado':''}
     
     message = request.args.get('message')
     message_promo = request.args.get('message_promo')
 
-    return render_template('index.html', product_names=product_names, message=message, message_promo=message_promo)
+    return render_template('index.html', product_list=products, message=message, message_promo=message_promo)
 
 @app.route('/account')
 def account():
@@ -59,8 +59,15 @@ def get_product_names():
             product_names.append(product_name)
     return product_names
 
-def update_product(nome, nova_quantidade):
-    redis_cnn.hincrby(f'produto:{nome}', 'quantidade', nova_quantidade) # Função incrementa ou decrementa valores
+def get_all_products():
+    products = []
+    cursor = '0'
+    while cursor != 0:
+        cursor, keys = redis_cnn.scan(cursor=cursor, match='produto:*')
+        for key in keys:
+            product_data = redis_cnn.hgetall(key)
+            products.append(product_data)
+    return products
 
 @app.route('/create_discount', methods=['POST'])
 def handle_create_discount():
@@ -91,6 +98,10 @@ def create_user(nome, sobrenome, senha):
     redis_cnn.hset(f'usuario:{nome}_{sobrenome}', mapping=cliente) # A chave será composta por nome e sobrenome para maior distinção
 # Exemplo de uso:
 #create_user('James', 'SaladadeFruta', '123123Salada')
+
+
+def update_product(nome, nova_quantidade):
+    redis_cnn.hincrby(f'produto:{nome}', 'quantidade', nova_quantidade) # Função incrementa ou decrementa valores
 
 if __name__ == '__main__':
     app.run(debug=True)
