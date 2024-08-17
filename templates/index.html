@@ -57,8 +57,8 @@
                             <!-- Dropdown com Produtos -->
                             <label for="produto">Escolha um Produto:</label>
                             <select id="produto" name="produto" class="form-control w-75">
-                                {% for product_name in product_names %}
-                                    <option value="{{ product_name }}">{{ product_name }}</option>
+                                {% for product in product_list %}
+                                    <option value="{{ product.nome }}">{{ product.nome }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -91,9 +91,27 @@
         <div class="container">
             <div class="row">
                 <!-- Produtos inseridos do BD Redis -->
+                {% for product in product_list %}
+                <div class="col sm-1 lg-3 xl-3 xxl-3 mb-3 border border-primary">
+                    <img src="../static/images/products/s24.png" width="150px">
+                    <div class="row">
+                        <div class="col text-center">{{ product.nome }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-center">R$ {{ product.valor }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col text-center">Em estoque: {{ product.quantidade }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            Comprar
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
-
     </section>
 
     <section id="discount">
