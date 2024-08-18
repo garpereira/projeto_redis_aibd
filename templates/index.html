@@ -7,14 +7,14 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col sm-12 md-12 lg-6 xl-6">
+            <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
                 <div class="row">
                     <div class="col-12 text-center">
                         CADASTRAR PRODUTO
                     </div>
                 </div>
                 <div class="row">
-                    <form method="POST" action="{{ url_for('handle_create_product') }}">
+                    <form method="POST" action="{{ url_for('handle_create_product') }}" enctype="multipart/form-data">
                         
                         <div class="form-group mb-3">
                             <label for="nome">Nome do Produto:</label>
@@ -45,7 +45,7 @@
                 </div>
                 {% endif %}
             </div>
-            <div class="col sm-12 md-12 lg-6 xl-6">
+            <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
                 <div class="row">
                     <div class="col-12 text-center">
                         CADASTRAR PROMOÇÃO
@@ -91,25 +91,23 @@
         <div class="container">
             <div class="row">
                 <!-- Produtos inseridos do BD Redis -->
-                {% for product in product_list %}
-                <div class="col sm-1 lg-3 xl-3 xxl-3 mb-3 border border-primary">
-                    <img src="../static/images/products/s24.png" width="150px">
-                    <div class="row">
-                        <div class="col text-center">{{ product.nome }}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col text-center">R$ {{ product.valor }}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col text-center">Em estoque: {{ product.quantidade }}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12 text-center">
-                            Comprar
+                 {% if product_list %}
+                    {% for product in product_list %}
+                    <div class="col col-sm-5 col-md-3 col-lg-2 col-xl-2 col-xxl-3 m-3 border border-primary d-flex flex-column">
+                        <div class="col text-center">
+                            <img src="data:image/png;base64,{{ product.imagem }}" width="150px">
+                        </div>
+                        <div class="col-12 text-center">{{ product.nome }}</div>
+                        <div class="col-12 text-center">R$ {{ product.valor }}</div>
+                        <div class="col-12 text-center">Em estoque: {{ product.quantidade }}</div>
+                        <div class="col-12 text-center align-self-end">
+                            <div class="btn btn-success mb-2">
+                                Comprar
+                            </div>
                         </div>
                     </div>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </section>
@@ -118,6 +116,7 @@
         <div class="container">
             <div class="row">
                 <!-- Produtos inseridos do BD Redis -->
+                 
             </div>
         </div>
     </section>

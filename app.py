@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 import redis
+import base64
 
 # Iniciando a aplicação Flask
 app = Flask(__name__)
@@ -12,9 +13,6 @@ def index():
 
     # Recuperar todos os produtos
     products = get_all_products()
-
-    if not products:
-        products = {'Nenhum produto cadastrado':''}
     
     message = request.args.get('message')
     message_promo = request.args.get('message_promo')
@@ -27,11 +25,18 @@ def account():
 
 def create_product(nome, valor, quantidade, imagem):
     if request.method == 'POST':
+        if imagem:
+            imagem_data = imagem.read()
+            imagem_base64 = base64.b64encode(imagem_data).decode('utf-8')
+
+        else:
+            imagem_base64 = ""
+
         produto = {
             'nome': nome,
             'valor': valor,
             'quantidade': quantidade,
-            'imagem': imagem
+            'imagem': imagem_base64
         }
         redis_cnn.hset(f'produto:{nome}', mapping=produto)  # O nome do produto será a chave do hash
 # Exemplo de uso:
@@ -43,7 +48,7 @@ def handle_create_product():
     nome = request.form['nome']
     valor = request.form['valor']
     quantidade = request.form['quantidade']
-    imagem = request.form['imagem']
+    imagem = request.files['imagem']
     create_product(nome, valor, quantidade, imagem)
     message = "Produto cadastrado com sucesso!"
     return redirect(url_for('index', message=message))
