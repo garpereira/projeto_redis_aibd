@@ -90,10 +90,23 @@
     <section id="product">
         <div class="container">
             <div class="row">
+
+                {% if message_delete %}
+                <div class="row" id="message_delete">
+                    <p class="message">{{ message_delete }}</p>
+                </div>
+                {% endif %}
+
                 <!-- Produtos inseridos do BD Redis -->
                  {% if product_list %}
                     {% for product in product_list %}
                     <div class="col col-sm-5 col-md-3 col-lg-2 col-xl-2 col-xxl-3 m-3 border border-primary d-flex flex-column">
+                        <div class="col-1 offset-10 mb-3 mt-1">
+                            <form action="{{ url_for('delete_product', product_name=product.nome ) }}" method="post">
+                            <button class="btn btn-danger fw-bold" type="submit">
+                                X
+                            </button>
+                        </div>
                         <div class="col text-center">
                             <img src="data:image/png;base64,{{ product.imagem }}" width="150px">
                         </div>
@@ -126,6 +139,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             var messageElement = document.getElementById('message');
             var messageElementPromo = document.getElementById('message_promo')
+            var messageElementDelete = document.getElementByID('message_delete')
             if (messageElement){
                 setTimeout(function() {
                     messageElement.style.display = 'none';
@@ -135,6 +149,12 @@
             if (messageElementPromo){
                 setTimeout(function() {
                     messageElementPromo.style.display = 'none';
+                }, 3000);
+            }
+
+            if (messageElementDelete){
+                setTimeout(function() {
+                    messageElementDelete.style.display = 'none';
                 }, 3000);
             }
         });
