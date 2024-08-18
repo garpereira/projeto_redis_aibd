@@ -16,8 +16,9 @@ def index():
     
     message = request.args.get('message')
     message_promo = request.args.get('message_promo')
+    message_delete = request.args.get('message_delete')
 
-    return render_template('index.html', product_list=products, message=message, message_promo=message_promo)
+    return render_template('index.html', product_list=products, message=message, message_promo=message_promo, message_delete=message_delete)
 
 @app.route('/account')
 def account():
@@ -107,6 +108,12 @@ def create_user(nome, sobrenome, senha):
 
 def update_product(nome, nova_quantidade):
     redis_cnn.hincrby(f'produto:{nome}', 'quantidade', nova_quantidade) # Função incrementa ou decrementa valores
+
+@app.route('/delete_product/<product_name>', methods=['POST'])
+def delete_product(product_name):
+    redis_cnn.delete(f'produto:{product_name}')
+    message = f'Produto {product_name} excluído com sucesso!'
+    return redirect(url_for('index', message_delete=message))
 
 if __name__ == '__main__':
     app.run(debug=True)
