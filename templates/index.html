@@ -70,7 +70,7 @@
                                     <input class="form-control w-100" type="number" min="0" max="100" id="desconto" name="desconto" required>
                                 </div>
                                 <div class="col-4">
-                                    <label for="data_expiracao">Expiração da promoção:</label>
+                                    <label for="data_expiracao">Expiração em:</label>
                                     <input class="form-control w-100" type="datetime-local" id="data_expiracao" name="data_expiracao" required>
                                 </div>
                             </div>
@@ -79,9 +79,13 @@
                         <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
                     </form>
                 </div>
-                {% if message_promo %}
+                {% if message_promo == 'valido' %}
                 <div class="row" id="message_promo">
-                    <p class="message">{{ message_promo }}</p>
+                    <p class="message">Promoção cadastrada com sucesso!</p>
+                </div>
+                {% else %}
+                <div class="row" id="message_promo">
+                    <p class="message promo_invalida">Data de expiração inválida!</p>
                 </div>
                 {% endif %}
             </div>
