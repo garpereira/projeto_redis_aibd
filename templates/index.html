@@ -24,11 +24,11 @@
                             <div class="row">
                                 <div class="col-3">
                                     <label for="valor">Valor:</label>
-                                    <input class="form-control w-100" type="number" id="valor" name="valor" required>
+                                    <input class="form-control w-100" type="number" min="0" id="valor" name="valor" required>
                                 </div>
                                 <div class="col-3">
                                     <label for="quantidade">Quantidade:</label>
-                                    <input class="form-control w-100" type="number" id="quantidade" name="quantidade" required>
+                                    <input class="form-control w-100" type="number" min="0" id="quantidade" name="quantidade" required>
                                 </div>
                             </div>
                         </div>
@@ -51,6 +51,7 @@
                         CADASTRAR PROMOÇÃO
                     </div>
                 </div>
+                {% if product_list %}
                 <div class="row">
                     <form method="POST" action="{{ url_for('handle_create_discount') }}">
                         <div class="form-group mb-3">
@@ -66,11 +67,11 @@
                             <div class="row">
                                 <div class="col-3">
                                     <label for="desconto">Desconto (%):</label>
-                                    <input class="form-control w-100" type="number" id="desconto" name="desconto" required>
+                                    <input class="form-control w-100" type="number" min="0" max="100" id="desconto" name="desconto" required>
                                 </div>
                                 <div class="col-4">
-                                    <label for="tempo_expiracao">Duração (segundos):</label>
-                                    <input class="form-control w-100" type="text" id="tempo_expiracao" name="tempo_expiracao" required>
+                                    <label for="data_expiracao">Expiração da promoção:</label>
+                                    <input class="form-control w-100" type="datetime-local" id="data_expiracao" name="data_expiracao" required>
                                 </div>
                             </div>
                         </div>
@@ -84,6 +85,13 @@
                 </div>
                 {% endif %}
             </div>
+            {% else %}
+            <div class="row flex justify-content-center">
+                <div class="col-8 text-center align-middle border rounded bg-warning">
+                    <p class="my-3">Para cadastrar promoções é necessário ter produtos.</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -110,11 +118,27 @@
                         <div class="col text-center">
                             <img src="data:image/png;base64,{{ product.imagem }}" width="150px">
                         </div>
-                        <div class="col-12 text-center">{{ product.nome }}</div>
-                        <div class="col-12 text-center">R$ {{ product.valor }}</div>
+                        <div class="col-12 text-center fw-semibold fs-4">{{ product.nome }}</div>
+                        <div class="col-12 text-center">
+                            <div class="fs-5">
+                                {% if product.desconto %}
+                                <div>Produto com <span class="text-success fs-6 fw-bold">{{ product.desconto }}%</span> de desconto!</div>
+                                <span class="text-decoration-line-through text-danger fw-bold">R$ {{ product.valor }}</span> 
+                                <span class="text-success fw-bold">R$ {{ product.valor_desconto }}</span>
+                                {% else %}
+                                R$ {{ product.valor }}
+                                {% endif %}
+                            </div>
+                        </div>
                         <div class="col-12 text-center">Em estoque: {{ product.quantidade }}</div>
-                        <div class="col-12 text-center align-self-end">
-                            <div class="btn btn-success mb-2 fw-bold">
+                        {% if product.desconto %}
+                        <div class="mt-2">
+                            <div class="text-center">Tempo para acabar a promoção:</div>
+                            <p class="text-center fs-5 fw-semibold tempoExpiracao">{{ product.tempo_expiracao }}</p>
+                        </div>
+                        {% endif %}
+                        <div class="col-12 text-center align-self-end mt-3">
+                            <div class="btn btn-success mb-2">
                                 Comprar
                             </div>
                         </div>
@@ -156,6 +180,49 @@
                 setTimeout(function() {
                     messageElementDelete.style.display = 'none';
                 }, 3000);
+            }
+
+            document.querySelectorAll('input[type="number"]').forEach(function(input) {
+                input.addEventListener('input', function() {
+                    let value = parseInt(input.value, 10);
+                    if (value < 0) {
+                        input.value = 0;
+                    }
+                });
+            });
+
+            var inputDesconto = document.getElementById('desconto')
+            inputDesconto.addEventListener('input', function() {
+                let value = parseInt(inputDesconto.value, 10);
+                if (value > 100) {
+                    inputDesconto.value = 100;
+                }
+            });
+
+            var tempoExpiracaoElements = document.getElementsByClassName('tempoExpiracao');
+            for (var i = 0; i < tempoExpiracaoElements.length; i++) {
+                (function(i) {
+                    var segundos = parseInt(tempoExpiracaoElements[i].textContent, 10);
+                    setInterval(function() {
+                        if (segundos > 0) {
+                            segundos--;
+                            // DD:HH:MM:SS
+                            var dias = Math.floor(segundos / (3600 * 24));
+                            var horas = Math.floor((segundos % (3600 * 24)) / 3600);
+                            var minutos = Math.floor((segundos % 3600) / 60);
+                            var segundosRestantes = segundos % 60;
+                            var formattedTime = 
+                                String(dias).padStart(2, '0') + ':' + 
+                                String(horas).padStart(2, '0') + ':' + 
+                                String(minutos).padStart(2, '0') + ':' + 
+                                String(segundosRestantes).padStart(2, '0');
+
+                            tempoExpiracaoElements[i].textContent = formattedTime;
+                        } else {
+                            tempoExpiracaoElements[i].textContent = "Promoção Expirada";
+                        }
+                    }, 1000);
+                })(i);
             }
         });
     </script>
