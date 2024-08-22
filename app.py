@@ -100,8 +100,7 @@ def handle_create_discount():
     data_expiracao = request.form['data_expiracao']
     desconto = request.form['desconto']
     nome = request.form['produto']
-    create_discount(data_expiracao, desconto, nome)
-    message = "Promoção cadastrada com sucesso!"
+    message = create_discount(data_expiracao, desconto, nome)
     return redirect(url_for('index', message_promo=message))
 
 def create_discount(data_expiracao, desconto, nome):
@@ -117,8 +116,9 @@ def create_discount(data_expiracao, desconto, nome):
         }
         redis_cnn.hset(f'promocao:{nome}', mapping=promocao)  # O nome será a chave do hash da promoção
         redis_cnn.expire(f'promocao:{nome}', tempo_expiracao)  # Define o tempo de expiração da promoção
+        return "valido"
     else:
-        print('Data de expiração inválida!')  # Se a data de expiração for menor que a data atual, a promoção não será criada
+        return "invalido" # Se a data de expiração for menor que a data atual, a promoção não será criada
 
 # Exemplo de uso:
 #create_discount(1643673600, 10, 'Camiseta')  # Promoção expira em 01/02/2022 com 10% de desconto na camiseta
