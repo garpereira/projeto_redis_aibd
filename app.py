@@ -40,7 +40,7 @@ def create_product(nome, valor, quantidade, imagem):
             imagem_base64 = base64.b64encode(imagem_data).decode('utf-8')
 
         else:
-            imagem_base64 = ""
+            imagem_base64 = "..."
 
         produto = {
             'nome': nome,
