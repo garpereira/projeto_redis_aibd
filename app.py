@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 import redis
 import base64
+from datetime import datetime
 
 # Iniciando a aplicação Flask
 app = Flask(__name__)
@@ -13,6 +14,14 @@ def index():
 
     # Recuperar todos os produtos
     products = get_all_products()
+    discounts = get_all_discounts()
+
+    for product in products:
+        for discount in discounts:
+            if product['nome'] == discount['nome']:
+                product['desconto'] = discount['desconto']
+                product['valor_desconto'] = round(float(product['valor']) * (1 - float(discount['desconto']) / 100), 2)
+                product['tempo_expiracao'] = discount['tempo_expiracao']
     
     message = request.args.get('message')
     message_promo = request.args.get('message_promo')
@@ -75,22 +84,42 @@ def get_all_products():
             products.append(product_data)
     return products
 
+def get_all_discounts():
+    discounts = []
+    cursor = '0'
+    while cursor != 0:
+        cursor, keys = redis_cnn.scan(cursor=cursor, match='promocao:*')
+        for key in keys:
+            discount_data = redis_cnn.hgetall(key)
+            discount_data['tempo_expiracao'] = redis_cnn.ttl(key)
+            discounts.append(discount_data)
+    return discounts
+
 @app.route('/create_discount', methods=['POST'])
 def handle_create_discount():
-    tempo_expiracao = request.form['tempo_expiracao']
+    data_expiracao = request.form['data_expiracao']
     desconto = request.form['desconto']
     nome = request.form['produto']
-    create_discount(tempo_expiracao, desconto, nome)
+    create_discount(data_expiracao, desconto, nome)
     message = "Promoção cadastrada com sucesso!"
     return redirect(url_for('index', message_promo=message))
 
-def create_discount(tempo_expiracao, desconto, nome):
-    promocao = {
-        'tempo_expiracao': tempo_expiracao,
-        'desconto': desconto,
-        'nome': nome
-    }
-    redis_cnn.hset(f'promocao:{nome}', mapping=promocao)  # O nome será a chave do hash da promoção
+def create_discount(data_expiracao, desconto, nome):
+    # Compara com a data atual para pegar o tempo de expiração em segundos:
+    data_atual = datetime.now()
+    data_expiracao = datetime.strptime(data_expiracao, '%Y-%m-%dT%H:%M')
+    tempo_expiracao = int((data_expiracao - data_atual).total_seconds())
+
+    if tempo_expiracao > 0:
+        promocao = {
+            'desconto': desconto,
+            'nome': nome
+        }
+        redis_cnn.hset(f'promocao:{nome}', mapping=promocao)  # O nome será a chave do hash da promoção
+        redis_cnn.expire(f'promocao:{nome}', tempo_expiracao)  # Define o tempo de expiração da promoção
+    else:
+        print('Data de expiração inválida!')  # Se a data de expiração for menor que a data atual, a promoção não será criada
+
 # Exemplo de uso:
 #create_discount(1643673600, 10, 'Camiseta')  # Promoção expira em 01/02/2022 com 10% de desconto na camiseta
 
