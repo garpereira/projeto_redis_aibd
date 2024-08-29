@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 import redis
 import base64
 from datetime import datetime
 
 # Iniciando a aplicação Flask
 app = Flask(__name__)
+app.secret_key = '123123abcde1123'
 
 # Iniciando a conexão com o Redis
 redis_cnn = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
@@ -31,7 +32,9 @@ def index():
 
 @app.route('/account')
 def account():
-    return render_template('account.html')
+    message_user_register = request.args.get('message_user_register')
+    message_user_login = request.args.get('message_user_login')
+    return render_template('account.html', message_user_register=message_user_register, message_user_login=message_user_login)
 
 def create_product(nome, valor, quantidade, imagem):
     if request.method == 'POST':
@@ -124,16 +127,51 @@ def create_discount(data_expiracao, desconto, nome):
 #create_discount(1643673600, 10, 'Camiseta')  # Promoção expira em 01/02/2022 com 10% de desconto na camiseta
 
 @app.route('/create_user', methods=['POST'])
-def create_user(nome, sobrenome, senha):
-    cliente = {
-        'nome': nome,
-        'sobrenome': sobrenome,
-        'senha': senha
-    }
-    redis_cnn.hset(f'usuario:{nome}_{sobrenome}', mapping=cliente) # A chave será composta por nome e sobrenome para maior distinção
-# Exemplo de uso:
-#create_user('James', 'SaladadeFruta', '123123Salada')
+def handle_create_user():
+    nome = request.form['nome']
+    email = request.form['email']
+    senha = request.form['senha']
+    message = create_user(nome, email, senha)
+    return redirect(url_for('account'), message_user_register=message)
 
+def create_user(nome, email, senha):
+    if request.method == 'POST':
+        # Verifica se o usuário já existe
+        if redis_cnn.exists(f'usuario:{email}'):
+            return 'failure'
+        else:
+            cliente = {
+                'nome': nome,
+                'email': email,
+                'senha': senha,
+                'carrinho_compra': [],
+                'historico_pedidos': []
+            }
+            redis_cnn.hset(f'usuario:{email}', mapping=cliente) # A chave será composta por email
+            return 'success'
+
+# Exemplo de uso:
+#create_user('James', 'email@email.com', '123123Salada')
+
+@app.route('/login', methods=['POST'])
+def handle_login_user():
+    email = request.form['email']
+    senha = request.form['senha']
+    login_user(email, senha)
+    return redirect(url_for('account'))
+
+def login_user(email, senha):
+    if request.method == 'POST':
+        # Verifica a existencia do email
+        if redis_cnn.exists(f'usuario:{email}'):
+            usuario = redis_cnn.hgetall(f'usuario:{email}')
+            if senha == usuario['senha']:
+                # Inicia a sessão do usuario
+                return 'success'
+            else:
+                return 'failure'
+        else:
+            return 'failure'
 
 def update_product(nome, nova_quantidade):
     redis_cnn.hincrby(f'produto:{nome}', 'quantidade', nova_quantidade) # Função incrementa ou decrementa valores

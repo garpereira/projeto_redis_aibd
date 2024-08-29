@@ -41,7 +41,7 @@
                 </div>
                 {% if message %}
                 <div class="row" id="message">
-                    <p class="message">{{ message }}</p>
+                    <p class="message text-success fw-bold">{{ message }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -79,14 +79,16 @@
                         <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
                     </form>
                 </div>
-                {% if message_promo == 'valido' %}
-                <div class="row" id="message_promo">
-                    <p class="message">Promoção cadastrada com sucesso!</p>
-                </div>
-                {% else %}
-                <div class="row" id="message_promo">
-                    <p class="message promo_invalida">Data de expiração inválida!</p>
-                </div>
+                {% if message_promo %}
+                    {% if message_promo == 'valido' %}
+                    <div class="row" id="message_promo">
+                        <p class="message text-success fw-bold">Promoção cadastrada com sucesso!</p>
+                    </div>
+                    {% else %}
+                    <div class="row" id="message_promo">
+                        <p class="message text-danger fw-bold">Data de expiração inválida!</p>
+                    </div>
+                    {% endif %}
                 {% endif %}
             </div>
             {% else %}
@@ -105,7 +107,7 @@
 
                 {% if message_delete %}
                 <div class="row" id="message_delete">
-                    <p class="message" style="color:red">{{ message_delete }}</p>
+                    <p class="message text-danger fw-bold">{{ message_delete }}</p>
                 </div>
                 {% endif %}
 

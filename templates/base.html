@@ -13,14 +13,6 @@
         .bg-nav-custom {
             background: linear-gradient(#e78e30, #dd3d18)
         }
-        .message {
-            color: green;
-            font-weight: bold;
-        }
-        .promo_invalida {
-            color: red;
-            font-weight: bold;
-        }
     </style>
     <link rel="icon" type="image/png" sizes="48x48" href="../static/images/favicon.png">
 </head>
@@ -59,7 +51,7 @@
                     <a class="nav-link" href="{{ url_for('index') }}">Início</a>
                     <a class="nav-link" href="#product">Produtos</a>
                     <a class="nav-link" href="#discount">Promoções</a>
-                    <a class="nav-link" href="#account">Minha Conta</a>
+                    <a class="nav-link" href="{{ url_for('account') }}">Minha Conta</a>
                 </div>
             </div>
             <form class="d-flex me-md-5">

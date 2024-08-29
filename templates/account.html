@@ -1,10 +1,89 @@
 {% extends 'base.html' %}
 
 {% block title %}
-
+<title>Shopipipipi - Minha Conta</title>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
+            <div class="row">
+                <div class="col-12 text-center">
+                    CADASTRAR USUÁRIO
+                </div>
+            </div>
+            <div class="row">
+                <form method="POST" action="{{ url_for('handle_create_user') }}" enctype="multipart/form-data">
+                    
+                    <div class="form-group mb-3">
+                        <label for="nome">Nome:</label>
+                        <input class="form-control w-50" type="text" id="nome" name="nome" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="email">Email:</label>
+                                <input class="form-control w-100" type="email" id="email" name="email" required>
+                            </div>
+                            <div class="col-3">
+                                <label for="senha">Senha:</label>
+                                <input class="form-control w-100" type="password" id="senha" name="senha" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
+                </form>
+            </div>
+            {% if message_user_register%}
+                {% if message_user_register == 'success' %}
+                <div class="row" id="message_user_register">
+                    <p class="message text-success fw-bold">Usuário cadastrado com sucesso!</p>
+                </div>
+                {% else %}
+                <div class="row" id="message_user_register">
+                    <p class="message text-danger fw-bold">Cadastro não realizado. Email já cadastrado.</p>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
+            <div class="row">
+                <div class="col-12 text-center">
+                    LOGIN USUÁRIO
+                </div>
+            </div>
+            <div class="row">
+                <form method="POST" action="{{ url_for('handle_login_user') }}">
+                    <div class="form-group mb-3">
+                        <div class="row">
+                            <div class="col-3">
+                                <label for="email">Email:</label>
+                                <input class="form-control w-100" type="email" id="email" name="email" required>
+                            </div>
+                            <div class="col-3">
+                                <label for="senha">Senha:</label>
+                                <input class="form-control w-100" type="password" id="senha" name="senha" required>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary mb-2" type="submit">Acessar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script>
+    // Função para ocultar a mensagem após 3 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        var messageUserRegisterElement = document.getElementById('message_user_register');
+        if (messageUserRegisterElement){
+            setTimeout(function() {
+                messageUserRegisterElement.style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
 
 {% endblock %}
