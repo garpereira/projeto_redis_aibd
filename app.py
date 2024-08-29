@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import redis
 import base64
+import json
 from datetime import datetime
 
 # Iniciando a aplicação Flask
@@ -144,8 +145,8 @@ def create_user(nome, email, senha):
                 'nome': nome,
                 'email': email,
                 'senha': senha,
-                'carrinho_compra': [],
-                'historico_pedidos': []
+                'carrinho_compra': json.dumps([]),
+                'historico_pedidos': json.dumps([])
             }
             redis_cnn.hset(f'usuario:{email}', mapping=cliente) # A chave será composta por email
             return 'success'
