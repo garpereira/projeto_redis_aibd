@@ -35,7 +35,9 @@ def index():
 def account():
     message_user_register = request.args.get('message_user_register')
     message_user_login = request.args.get('message_user_login')
-    return render_template('account.html', message_user_register=message_user_register, message_user_login=message_user_login)
+    user_logged_in = session['username']
+
+    return render_template('account.html', message_user_register=message_user_register, message_user_login=message_user_login, user_logged_in=user_logged_in)
 
 def create_product(nome, valor, quantidade, imagem):
     if request.method == 'POST':
@@ -133,7 +135,7 @@ def handle_create_user():
     email = request.form['email']
     senha = request.form['senha']
     message = create_user(nome, email, senha)
-    return redirect(url_for('account'), message_user_register=message)
+    return redirect(url_for('account', message_user_register=message))
 
 def create_user(nome, email, senha):
     if request.method == 'POST':
@@ -150,7 +152,6 @@ def create_user(nome, email, senha):
             }
             redis_cnn.hset(f'usuario:{email}', mapping=cliente) # A chave será composta por email
             return 'success'
-
 # Exemplo de uso:
 #create_user('James', 'email@email.com', '123123Salada')
 
@@ -158,8 +159,8 @@ def create_user(nome, email, senha):
 def handle_login_user():
     email = request.form['email']
     senha = request.form['senha']
-    login_user(email, senha)
-    return redirect(url_for('account'))
+    message = login_user(email, senha)
+    return redirect(url_for('account', message_user_login=message))
 
 def login_user(email, senha):
     if request.method == 'POST':
@@ -168,6 +169,7 @@ def login_user(email, senha):
             usuario = redis_cnn.hgetall(f'usuario:{email}')
             if senha == usuario['senha']:
                 # Inicia a sessão do usuario
+                session['username'] = usuario
                 return 'success'
             else:
                 return 'failure'
@@ -182,6 +184,18 @@ def delete_product(product_name):
     redis_cnn.delete(f'produto:{product_name}')
     message = f'Produto {product_name} excluído com sucesso!'
     return redirect(url_for('index', message_delete=message))
+
+@app.route('/add_to_cart/<product>', methods=['POST'])
+def add_to_cart(product):
+    # Verifica se há usuário logado
+    if session['username']:
+        # Pegar o usuário da sessão
+        usuario = session['username']
+        # Adicionar o produto em seu carrinho
+        
+    else:
+        # Retorna aviso que precisa estar logado para comprar
+        None
 
 if __name__ == '__main__':
     app.run(debug=True)

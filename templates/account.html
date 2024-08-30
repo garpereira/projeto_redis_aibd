@@ -31,7 +31,7 @@
                     <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
                 </form>
             </div>
-            {% if message_user_register%}
+            {% if message_user_register %}
                 {% if message_user_register == 'success' %}
                 <div class="row" id="message_user_register">
                     <p class="message text-success fw-bold">Usuário cadastrado com sucesso!</p>
@@ -52,31 +52,70 @@
             <div class="row">
                 <form method="POST" action="{{ url_for('handle_login_user') }}">
                     <div class="form-group mb-3">
-                        <div class="row">
-                            <div class="col-3">
-                                <label for="email">Email:</label>
-                                <input class="form-control w-100" type="email" id="email" name="email" required>
-                            </div>
-                            <div class="col-3">
-                                <label for="senha">Senha:</label>
-                                <input class="form-control w-100" type="password" id="senha" name="senha" required>
-                            </div>
-                        </div>
+                        <label for="email">Email:</label>
+                        <input class="form-control w-50" type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="senha">Senha:</label>
+                        <input class="form-control w-50" type="password" id="senha" name="senha" required>
                     </div>
                     <button class="btn btn-primary mb-2" type="submit">Acessar</button>
                 </form>
             </div>
+            {% if message_user_login %}
+                {% if message_user_login == 'failure' %}
+                <div class="row" id="message_user_login">
+                    <p class="message text-danger fw-bold">Email ou Senha estão incorretos!</p>
+                </div>
+                {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>
 
+{% if user_logged_in %}
+    <!-- Informações do Usuário -->
+    <section id="informacoes_usuario">
+        <div class="container">
+            <div class="row m-3">
+                <h4>Bem vindo {{user_logged_in.nome}}</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- Items do Histórico de Pedidos -->
+    <section id="historico_pedidos">
+        <div class="container">
+            <div class="row card">
+                
+            </div>
+        </div>
+    </section>
+    <!-- Items do Carrinho de Compras -->
+    <section id="carrinho_compras">
+        <div class="container">
+            <div class="row">
+
+            </div>
+        </div>
+    </section>
+ {% endif %}
+ 
 <script>
     // Função para ocultar a mensagem após 3 segundos
     document.addEventListener('DOMContentLoaded', function() {
         var messageUserRegisterElement = document.getElementById('message_user_register');
+        var messageUserLoginElement = document.getElementById('message_user_login');
+        
         if (messageUserRegisterElement){
             setTimeout(function() {
                 messageUserRegisterElement.style.display = 'none';
+            }, 3000);
+        }
+
+        if (messageUserLoginElement){
+            setTimeout(function() {
+                messageUserLoginElement.style.display = 'none';
             }, 3000);
         }
     });

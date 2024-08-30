@@ -116,10 +116,11 @@
                     {% for product in product_list %}
                     <div class="col col-sm-5 col-md-3 col-lg-2 col-xl-2 col-xxl-3 m-3 border border-primary d-flex flex-column">
                         <div class="col-1 offset-10 mb-3 mt-1">
-                            <form action="{{ url_for('delete_product', product_name=product.nome ) }}" method="post">
-                            <button class="btn btn-danger fw-bold" type="submit">
-                                X
-                            </button>
+                            <form action="{{ url_for('delete_product', product_name=product.nome ) }}" method="POST">
+                                <button class="btn btn-danger fw-bold" type="submit">
+                                    X
+                                </button>
+                            </form>
                         </div>
                         <div class="col text-center">
                             <img src="data:image/png;base64,{{ product.imagem }}" width="150px">
@@ -143,11 +144,13 @@
                             <p class="text-center fs-5 fw-semibold tempoExpiracao">{{ product.tempo_expiracao }}</p>
                         </div>
                         {% endif %}
-                        <div class="col-12 text-center align-self-end mt-3">
-                            <div class="btn btn-success mb-2">
-                                Comprar
+                        <form action="{{ url_for('add_to_cart', product=product) }}" method="POST">
+                            <div class="col-12 text-center align-self-end mt-3">
+                                <div class="btn btn-success mb-2">
+                                    Comprar
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                     {% endfor %}
                 {% endif %}
