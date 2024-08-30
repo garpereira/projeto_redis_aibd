@@ -35,7 +35,10 @@ def index():
 def account():
     message_user_register = request.args.get('message_user_register')
     message_user_login = request.args.get('message_user_login')
-    user_logged_in = session['username']
+    try:
+        user_logged_in = session['username']
+    except:
+        user_logged_in = None
 
     return render_template('account.html', message_user_register=message_user_register, message_user_login=message_user_login, user_logged_in=user_logged_in)
 
@@ -176,6 +179,11 @@ def login_user(email, senha):
         else:
             return 'failure'
 
+@app.route('/logout', methods=['POST'])
+def logout_user():
+    session.pop('username', None)
+    return redirect(url_for('account'))
+
 def update_product(nome, nova_quantidade):
     redis_cnn.hincrby(f'produto:{nome}', 'quantidade', nova_quantidade) # Função incrementa ou decrementa valores
 
@@ -192,7 +200,8 @@ def add_to_cart(product):
         # Pegar o usuário da sessão
         usuario = session['username']
         # Adicionar o produto em seu carrinho
-        
+
+
     else:
         # Retorna aviso que precisa estar logado para comprar
         None
