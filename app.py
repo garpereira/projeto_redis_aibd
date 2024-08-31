@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import redis
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from os.path import join
 
 # Iniciando a aplicação Flask
 app = Flask(__name__)
@@ -28,18 +29,39 @@ def index():
     message = request.args.get('message')
     message_promo = request.args.get('message_promo')
     message_delete = request.args.get('message_delete')
+    message_login = request.args.get('message_login')
 
-    return render_template('index.html', product_list=products, message=message, message_promo=message_promo, message_delete=message_delete)
+    return render_template('index.html', product_list=products, message=message, message_promo=message_promo, message_delete=message_delete, message_login=message_login)
+
+@app.route('/static/<path:filename>')
+def static_files(filename):
+    response = send_from_directory('static', filename)
+    response.cache_control.max_age = timedelta(days=1)
+    return response
 
 @app.route('/account')
 def account():
     message_user_register = request.args.get('message_user_register')
     message_user_login = request.args.get('message_user_login')
-    try:
-        user_logged_in = session['username']
-    except:
-        user_logged_in = None
+    
 
+    if 'username' in session.keys():
+        user_logged_in = update_user_session()
+        discounts = get_all_discounts()
+
+        products_ = []
+        for product_name in user_logged_in['carrinho_compra']:
+            products_.append(get_single_product(product_name))
+            for discount in discounts:
+                if discount['nome'] == products_[-1]['nome']:
+                    products_[-1]['desconto'] = discount['desconto']
+                    products_[-1]['valor_desconto'] = round(float(products_[-1]['valor']) * (1 - float(discount['desconto']) / 100), 2)
+                    products_[-1]['tempo_expiracao'] = discount['tempo_expiracao']
+
+        user_logged_in['carrinho_compra'] = products_
+    else:
+        user_logged_in = False
+    
     return render_template('account.html', message_user_register=message_user_register, message_user_login=message_user_login, user_logged_in=user_logged_in)
 
 def create_product(nome, valor, quantidade, imagem):
@@ -49,13 +71,18 @@ def create_product(nome, valor, quantidade, imagem):
             imagem_base64 = base64.b64encode(imagem_data).decode('utf-8')
 
         else:
-            imagem_base64 = "..."
+            pattern_path = join(app.static_folder, 'images/logo_.png')
+            with open(pattern_path, 'rb') as img_file:
+                imagem_data = img_file.read()
+                imagem_base64 = base64.b64encode(imagem_data).decode('utf-8')
 
         produto = {
             'nome': nome,
             'valor': valor,
             'quantidade': quantidade,
-            'imagem': imagem_base64
+            'imagem': imagem_base64,
+            'desconto': 0.0,
+            'valor_desconto': 0.0
         }
         redis_cnn.hset(f'produto:{nome}', mapping=produto)  # O nome do produto será a chave do hash
 # Exemplo de uso:
@@ -71,6 +98,9 @@ def handle_create_product():
     create_product(nome, valor, quantidade, imagem)
     message = "Produto cadastrado com sucesso!"
     return redirect(url_for('index', message=message))
+
+def get_single_product(product_name):
+    return redis_cnn.hgetall(f'produto:{product_name}')
 
 def get_product_names():
     # Usa SCAN para iterar sobre todas as chaves
@@ -172,12 +202,21 @@ def login_user(email, senha):
             usuario = redis_cnn.hgetall(f'usuario:{email}')
             if senha == usuario['senha']:
                 # Inicia a sessão do usuario
-                session['username'] = usuario
+                session['username'] = {'email':usuario['email']}
                 return 'success'
             else:
                 return 'failure'
         else:
             return 'failure'
+
+def update_user_session():
+    if 'username' in session.keys():
+        usuario = redis_cnn.hgetall(f'usuario:{session["username"]["email"]}')
+        carrinho_ = json.loads(redis_cnn.hget(f'usuario:{session["username"]["email"]}', 'carrinho_compra'))
+        historico_ = json.loads(redis_cnn.hget(f'usuario:{session["username"]["email"]}', 'historico_pedidos'))
+        usuario['carrinho_compra'] = carrinho_
+        usuario['historico_pedidos'] = historico_
+        return usuario
 
 @app.route('/logout', methods=['POST'])
 def logout_user():
@@ -193,18 +232,18 @@ def delete_product(product_name):
     message = f'Produto {product_name} excluído com sucesso!'
     return redirect(url_for('index', message_delete=message))
 
-@app.route('/add_to_cart/<product>', methods=['POST'])
-def add_to_cart(product):
-    # Verifica se há usuário logado
-    if session['username']:
-        # Pegar o usuário da sessão
-        usuario = session['username']
-        # Adicionar o produto em seu carrinho
-
-
+@app.route('/add_to_cart/?<product_name>', methods=['POST'])
+def add_to_cart(product_name):
+    # Verifica se há usuário logado, então atualiza o carrinho
+    if 'username' in session.keys():
+        user = session['username']
+        cart_shop = json.loads(redis_cnn.hget(f'usuario:{user["email"]}', 'carrinho_compra'))
+        cart_shop.append(product_name)
+        redis_cnn.hset(f'usuario:{user["email"]}', 'carrinho_compra', json.dumps(cart_shop))
+        session['username'] = redis_cnn.hgetall(f'usuario:{user["email"]}')
+        return redirect(url_for('index', message_login='success'))
     else:
-        # Retorna aviso que precisa estar logado para comprar
-        None
+        return redirect(url_for('index', message_login='failure'))
 
 if __name__ == '__main__':
     app.run(debug=True)

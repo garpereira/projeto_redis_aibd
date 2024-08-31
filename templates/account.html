@@ -43,6 +43,7 @@
                 {% endif %}
             {% endif %}
         </div>
+        {% if not user_logged_in %}
         <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
             <div class="row">
                 <div class="col-12 text-center">
@@ -64,58 +65,83 @@
             </div>
             {% if message_user_login %}
                 {% if message_user_login == 'failure' %}
-                <div class="row" id="message_user_login">
-                    <p class="message text-danger fw-bold">Email ou Senha estão incorretos!</p>
-                </div>
+                    <div class="row" id="message_user_login">
+                        <p class="message text-danger fw-bold">Email ou Senha estão incorretos!</p>
+                    </div>
                 {% endif %}
             {% endif %}
         </div>
     </div>
-</div>
-
-{% if user_logged_in %}
-    <!-- Informações do Usuário -->
+    {% else %}
+    <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
+        <!-- Informações do Usuário -->
     <section id="informacoes_usuario">
-        <div class="container">
-            <div class="row m-3">
+        <div class="row m-3">
+            <div class="col col-md-7 col-lg-6 col-sm-8">
+                <h4>Bem vindo {{user_logged_in.nome}}</h4>
+            </div>
+            <div class="col offset-1 d-flex ">
                 <div class="col">
-                    <h4>Bem vindo {{user_logged_in.nome}}</h4>
-                </div>
-                <div class="col offset-5 flex-column">
-                    <div class="col-6 d-flex">Sair</div>
-                    <div class="col-6 d-flex">
-                        <form action="{{ url_for('logout_user') }}" method="POST">
-                            <button class="btn btn-danger fw-bold" type="submit">
-                                X
-                            </button>
-                        </form>
-                    </div>
+                    <form action="{{ url_for('logout_user') }}" method="POST">
+                        <button class="btn btn-danger fw-bold" type="submit">
+                            SAIR
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </section>
+    </div>
+</div>
+<!-- Items do Carrinho de Compras -->
+<section id="carrinho_compras">
+    <div class="container">
+        <div class="row">
+            Carrinho de Compras
+        </div>
+        <div class="row card mb-3 p-2">
+            <!-- Cada produto sendo adicionado aqui -->
+            {% for ccompra in user_logged_in.carrinho_compra %}
+            <div class="row card row-sm-5 row-md-4 row-lg-2 row-xl-1 row-xxl-1 mb-3 d-flex flex-column">
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Produto: {{ ccompra.nome }}
+                </div>
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Valor: {{ ccompra.valor }}
+                </div>
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Quantidade: 
+                </div>
+                {% if ccompra.desconto|float > 0.0 %}
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Desconto {{ ccompra.desconto }}%
+                </div>
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Valor total: {{ ccompra.valor_desconto }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 
-    <!-- Items do Histórico de Pedidos -->
-    <section id="historico_pedidos">
-        <div class="container">
-            <div class="row">
-                Histórico de Pedidos
-            </div>
-            <div class="row card">
-                <!-- Cada produto sendo adicionado aqui -->
-                <div class="col card">
-                </div>
-            </div>
+<!-- Items do Histórico de Pedidos -->
+<section id="historico_pedidos">
+    <div class="container">
+        <div class="row">
+            Histórico de Pedidos
         </div>
-    </section>
-    <!-- Items do Carrinho de Compras -->
-    <section id="carrinho_compras">
-        <div class="container">
-            <div class="row">
-
+        <div class="row card">
+            <!-- Cada produto sendo adicionado aqui -->
+            {% for hpedido in user_logged_in.historico_pedidos %}
+            <div class="col card col-sm-5 col-md-4 col-lg-2 col-xl-1 col-xxl-1 mb-3 d-flex flex-column">
+                
             </div>
+            {% endfor %}
         </div>
-    </section>
+    </div>
+</section>
  {% endif %}
 
 <script>
