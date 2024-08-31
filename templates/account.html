@@ -1,10 +1,167 @@
 {% extends 'base.html' %}
 
 {% block title %}
-
+<title>Shopipipipi - Minha Conta</title>
 {% endblock %}
 
 {% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
+            <div class="row">
+                <div class="col-12 text-center">
+                    CADASTRAR USUÁRIO
+                </div>
+            </div>
+            <div class="row">
+                <form method="POST" action="{{ url_for('handle_create_user') }}" enctype="multipart/form-data">
+                    
+                    <div class="form-group mb-3">
+                        <label for="nome">Nome:</label>
+                        <input class="form-control w-50" type="text" id="nome" name="nome" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="email">Email:</label>
+                        <input class="form-control w-50" type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="senha">Senha:</label>
+                        <input class="form-control w-50" type="password" id="senha" name="senha" required>
+                    </div>
+                    <button class="btn btn-primary mb-2" type="submit">Cadastrar</button>
+                </form>
+            </div>
+            {% if message_user_register %}
+                {% if message_user_register == 'success' %}
+                <div class="row" id="message_user_register">
+                    <p class="message text-success fw-bold">Usuário cadastrado com sucesso!</p>
+                </div>
+                {% else %}
+                <div class="row" id="message_user_register">
+                    <p class="message text-danger fw-bold">Cadastro não realizado. Email já cadastrado.</p>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% if not user_logged_in %}
+        <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
+            <div class="row">
+                <div class="col-12 text-center">
+                    LOGIN USUÁRIO
+                </div>
+            </div>
+            <div class="row">
+                <form method="POST" action="{{ url_for('handle_login_user') }}">
+                    <div class="form-group mb-3">
+                        <label for="email">Email:</label>
+                        <input class="form-control w-50" type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="senha">Senha:</label>
+                        <input class="form-control w-50" type="password" id="senha" name="senha" required>
+                    </div>
+                    <button class="btn btn-primary mb-2" type="submit">Acessar</button>
+                </form>
+            </div>
+            {% if message_user_login %}
+                {% if message_user_login == 'failure' %}
+                    <div class="row" id="message_user_login">
+                        <p class="message text-danger fw-bold">Email ou Senha estão incorretos!</p>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
+        <!-- Informações do Usuário -->
+    <section id="informacoes_usuario">
+        <div class="row m-3">
+            <div class="col col-md-7 col-lg-6 col-sm-8">
+                <h4>Bem vindo {{user_logged_in.nome}}</h4>
+            </div>
+            <div class="col offset-1 d-flex ">
+                <div class="col">
+                    <form action="{{ url_for('logout_user') }}" method="POST">
+                        <button class="btn btn-danger fw-bold" type="submit">
+                            SAIR
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    </div>
+</div>
+<!-- Items do Carrinho de Compras -->
+<section id="carrinho_compras">
+    <div class="container">
+        <div class="row">
+            Carrinho de Compras
+        </div>
+        <div class="row card mb-3 p-2">
+            <!-- Cada produto sendo adicionado aqui -->
+            {% for ccompra in user_logged_in.carrinho_compra %}
+            <div class="row card row-sm-5 row-md-4 row-lg-2 row-xl-1 row-xxl-1 mb-3 d-flex flex-column">
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Produto: {{ ccompra.nome }}
+                </div>
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Valor: {{ ccompra.valor }}
+                </div>
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Quantidade: 
+                </div>
+                {% if ccompra.desconto|float > 0.0 %}
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Desconto {{ ccompra.desconto }}%
+                </div>
+                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
+                    Valor total: {{ ccompra.valor_desconto }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
 
+<!-- Items do Histórico de Pedidos -->
+<section id="historico_pedidos">
+    <div class="container">
+        <div class="row">
+            Histórico de Pedidos
+        </div>
+        <div class="row card">
+            <!-- Cada produto sendo adicionado aqui -->
+            {% for hpedido in user_logged_in.historico_pedidos %}
+            <div class="col card col-sm-5 col-md-4 col-lg-2 col-xl-1 col-xxl-1 mb-3 d-flex flex-column">
+                
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+ {% endif %}
+
+<script>
+    // Função para ocultar a mensagem após 3 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        var messageUserRegisterElement = document.getElementById('message_user_register');
+        var messageUserLoginElement = document.getElementById('message_user_login');
+        
+        if (messageUserRegisterElement){
+            setTimeout(function() {
+                messageUserRegisterElement.style.display = 'none';
+            }, 3000);
+        }
+
+        if (messageUserLoginElement){
+            setTimeout(function() {
+                messageUserLoginElement.style.display = 'none';
+            }, 3000);
+        }
+    });
+</script>
 
 {% endblock %}

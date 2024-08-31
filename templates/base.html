@@ -13,16 +13,8 @@
         .bg-nav-custom {
             background: linear-gradient(#e78e30, #dd3d18)
         }
-        .message {
-            color: green;
-            font-weight: bold;
-        }
-        .promo_invalida {
-            color: red;
-            font-weight: bold;
-        }
     </style>
-    <link rel="icon" type="image/png" sizes="48x48" href="../static/images/favicon.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="/static/images/favicon.png">
 </head>
 <body>
     <!-- Cabeçalho de Página -->
@@ -31,19 +23,19 @@
         <div class="container-fluid bg-logo-custom">
             <div class="row">
                 <div class="col">
-                    <img src="../static/images/cale-se.png" width="500px">
+                    <img src="/static/images/cale-se.png?v=1.0" width="500px">
                 </div>
                 <div class="col-2">
-                    <img src="../static/images/logo_sc.png" width="150px">
+                    <img src="/static/images/logo_sc.png?v=1.0" width="150px">
                 </div>
                 <div class="col">
-                    <img src="../static/images/precos_.png" width="200px">
+                    <img src="/static/images/precos_.png?v=1.0" width="200px">
                     <div class="row">
-                        <img src="../static/images/deixa_.png" width="250px">  
+                        <img src="/static/images/deixa_.png?v=1.0" width="250px">  
                     </div>
                 </div> 
                 <div class="col">
-                    <img src="../static/images/louco_.png" width="250px">
+                    <img src="/static/images/louco_.png?v=1.0" width="250px">
                 </div>
                 
             </div>
@@ -59,7 +51,7 @@
                     <a class="nav-link" href="{{ url_for('index') }}">Início</a>
                     <a class="nav-link" href="#product">Produtos</a>
                     <a class="nav-link" href="#discount">Promoções</a>
-                    <a class="nav-link" href="#account">Minha Conta</a>
+                    <a class="nav-link" href="{{ url_for('account') }}">Minha Conta</a>
                 </div>
             </div>
             <form class="d-flex me-md-5">
