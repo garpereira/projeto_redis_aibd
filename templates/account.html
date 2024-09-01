@@ -6,7 +6,9 @@
 
 {% block content %}
 <div class="container">
+    {% if not user_logged_in %}
     <div class="row">
+        <!-- Formulário Cadastro de Usuário -->
         <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
             <div class="row">
                 <div class="col-12 text-center">
@@ -43,7 +45,7 @@
                 {% endif %}
             {% endif %}
         </div>
-        {% if not user_logged_in %}
+        <!-- Formulário Login Usuário -->
         <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
             <div class="row">
                 <div class="col-12 text-center">
@@ -73,56 +75,82 @@
         </div>
     </div>
     {% else %}
-    <div class="col col-sm-12 col-md-12 col-lg-6 col-xl-6">
-        <!-- Informações do Usuário -->
-    <section id="informacoes_usuario">
-        <div class="row m-3">
-            <div class="col col-md-7 col-lg-6 col-sm-8">
-                <h4>Bem vindo {{user_logged_in.nome}}</h4>
-            </div>
-            <div class="col offset-1 d-flex ">
-                <div class="col">
-                    <form action="{{ url_for('logout_user') }}" method="POST">
-                        <button class="btn btn-danger fw-bold" type="submit">
-                            SAIR
-                        </button>
-                    </form>
-                </div>
-            </div>
+    <!-- Informações do Usuário -->
+    <div class="row mb-5 border-bottom p-3">
+        <div class="col col-md-7 col-lg-8 col-sm-8">
+            <h4>Bem vindo {{user_logged_in.nome}}</h4>
         </div>
-    </section>
+        <div class="col col-md-3 col-lg-3 col-sm-3 d-flex justify-content-end">
+            <form action="{{ url_for('logout_user') }}" method="POST">
+                <button class="btn btn-danger fw-bold" type="submit">
+                    SAIR
+                </button>
+            </form>
+        </div>
     </div>
 </div>
+
 <!-- Items do Carrinho de Compras -->
 <section id="carrinho_compras">
     <div class="container">
-        <div class="row">
-            Carrinho de Compras
+        <div class="row-12 mb-3">
+            <span class="col-sm-12 col-md-3 col-lg-3 col-xl-3">
+                <h5>Carrinho de Compras</h5>
+            </span>
         </div>
-        <div class="row card mb-3 p-2">
-            <!-- Cada produto sendo adicionado aqui -->
-            {% for ccompra in user_logged_in.carrinho_compra %}
-            <div class="row card row-sm-5 row-md-4 row-lg-2 row-xl-1 row-xxl-1 mb-3 d-flex flex-column">
-                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
-                    Produto: {{ ccompra.nome }}
+        <!-- Cada produto sendo adicionado aqui -->
+        {% for ccompra in user_logged_in.carrinho_compra %}
+        <div class="row mb-3 border rounded p-2">
+            <div class="col col-sm-2 col-md-2 col-lg-2">
+                <span><img src="data:image/png;base64,{{ ccompra.imagem }}" width="100px"></span>
+            </div>
+            <div class="col col-sm-3 col-md-3 col-lg-3 d-flex justify-content-left align-items-center">
+                <span class="fs-5 text-uppercase fw-bold">
+                    {{ ccompra.nome }}
+                </span>
+            </div>
+            <div class="col offset-3 d-flex flex-column justify-content-around border-start">
+                <div class="row border-bottom">
+                    <div class="col border-start">
+                        <span class="fs-6 fw-semibold">Valor:</span>
+                    </div>
+                    <div class="col border-start">
+                        <span class="fs-6">R$ {{ ccompra.valor }}</span>
+                    </div>
                 </div>
-                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
-                    Valor: {{ ccompra.valor }}
+                <div class="row border-bottom">
+                    <div class="col border-start">
+                        <span class="fs-6 fw-semibold">Quantidade:</span>
+                    </div>
+                    <div class="col border-start">
+                        <span class="fs-6">1</span>
+                    </div>
                 </div>
-                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
-                    Quantidade: 
-                </div>
-                {% if ccompra.desconto|float > 0.0 %}
-                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
-                    Desconto {{ ccompra.desconto }}%
-                </div>
-                <div class="col col-sm-4 col-md-3 col-lg-3 mb-3">
-                    Valor total: {{ ccompra.valor_desconto }}
+                {% if ccompra.desconto and ccompra.desconto|float > 0.0 %}
+                <div class="row border-bottom">
+                    <div class="col border-start">
+                        <span class="fs-6 fw-semibold">Desconto:</span>
+                    </div>
+                    <div class="col border-start">
+                        <span class="fs-6">{{ ccompra.desconto }}%</span>
+                    </div>
                 </div>
                 {% endif %}
+                <div class="row">
+                    <div class="col border-start">
+                        <span class="fs-6 fw-semibold">Total:</span>
+                    </div>
+                    <div class="col border-start">
+                        {% if ccompra.de6conto and ccompra.desconto|float > 0.0 %}
+                        <span class="fs-6">R$ {{ ccompra.valor_desconto }}</span>
+                        {% else %}
+                        <span class="fs-6">R$ {{ ccompra.valor }}</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </section>
 

@@ -245,5 +245,7 @@ def add_to_cart(product_name):
     else:
         return redirect(url_for('index', message_login='failure'))
 
+
+
 if __name__ == '__main__':
     app.run(debug=True)
