@@ -47,18 +47,20 @@ def account():
 
     if 'username' in session.keys():
         user_logged_in = update_user_session()
-        discounts = get_all_discounts()
-
-        products_ = []
-        for product_name in user_logged_in['carrinho_compra']:
-            products_.append(get_single_product(product_name))
-            for discount in discounts:
-                if discount['nome'] == products_[-1]['nome']:
-                    products_[-1]['desconto'] = discount['desconto']
-                    products_[-1]['valor_desconto'] = round(float(products_[-1]['valor']) * (1 - float(discount['desconto']) / 100), 2)
-                    products_[-1]['tempo_expiracao'] = discount['tempo_expiracao']
-
-        user_logged_in['carrinho_compra'] = products_
+        if not user_logged_in:
+            logout_user()
+            user_logged_in = False
+        else:
+            discounts = get_all_discounts()
+            products_ = []
+            for product_name in user_logged_in['carrinho_compra']:
+                products_.append(get_single_product(product_name))
+                for discount in discounts:
+                    if discount['nome'] == products_[-1]['nome']:
+                        products_[-1]['desconto'] = discount['desconto']
+                        products_[-1]['valor_desconto'] = round(float(products_[-1]['valor']) * (1 - float(discount['desconto']) / 100), 2)
+                        products_[-1]['tempo_expiracao'] = discount['tempo_expiracao']
+            user_logged_in['carrinho_compra'] = products_
     else:
         user_logged_in = False
     
@@ -134,6 +136,9 @@ def get_all_discounts():
             discounts.append(discount_data)
     return discounts
 
+def get_single_discount(product_name):
+    return redis_cnn.hget(f'promocao:{product_name}', 'desconto')
+
 @app.route('/create_discount', methods=['POST'])
 def handle_create_discount():
     data_expiracao = request.form['data_expiracao']
@@ -141,6 +146,7 @@ def handle_create_discount():
     nome = request.form['produto']
     message = create_discount(data_expiracao, desconto, nome)
     return redirect(url_for('index', message_promo=message))
+
 
 def create_discount(data_expiracao, desconto, nome):
     # Compara com a data atual para pegar o tempo de expiração em segundos:
@@ -181,7 +187,7 @@ def create_user(nome, email, senha):
                 'email': email,
                 'senha': senha,
                 'carrinho_compra': json.dumps([]),
-                'historico_pedidos': json.dumps([])
+                'historico_pedidos': json.dumps({})
             }
             redis_cnn.hset(f'usuario:{email}', mapping=cliente) # A chave será composta por email
             return 'success'
@@ -212,10 +218,11 @@ def login_user(email, senha):
 def update_user_session():
     if 'username' in session.keys():
         usuario = redis_cnn.hgetall(f'usuario:{session["username"]["email"]}')
-        carrinho_ = json.loads(redis_cnn.hget(f'usuario:{session["username"]["email"]}', 'carrinho_compra'))
-        historico_ = json.loads(redis_cnn.hget(f'usuario:{session["username"]["email"]}', 'historico_pedidos'))
-        usuario['carrinho_compra'] = carrinho_
-        usuario['historico_pedidos'] = historico_
+        if usuario:
+            carrinho_ = json.loads(redis_cnn.hget(f'usuario:{session["username"]["email"]}', 'carrinho_compra'))
+            historico_ = json.loads(redis_cnn.hget(f'usuario:{session["username"]["email"]}', 'historico_pedidos'))
+            usuario['carrinho_compra'] = carrinho_
+            usuario['historico_pedidos'] = historico_
         return usuario
 
 @app.route('/logout', methods=['POST'])
@@ -223,14 +230,22 @@ def logout_user():
     session.pop('username', None)
     return redirect(url_for('account'))
 
-def update_product(nome, nova_quantidade):
-    redis_cnn.hincrby(f'produto:{nome}', 'quantidade', nova_quantidade) # Função incrementa ou decrementa valores
+def update_product(nome, valor_incr_decr):
+    redis_cnn.hincrby(f'produto:{nome}', 'quantidade', valor_incr_decr) # Função incrementa ou decrementa valores
 
 @app.route('/delete_product/<product_name>', methods=['POST'])
 def delete_product(product_name):
     redis_cnn.delete(f'produto:{product_name}')
     message = f'Produto {product_name} excluído com sucesso!'
     return redirect(url_for('index', message_delete=message))
+
+@app.route('/remove_cart/<product_name>', methods=['POST'])
+def remove_product_cart(product_name):
+    user_id = session['username']
+    carrinho_ = json.loads(redis_cnn.hget(f'usuario:{user_id["email"]}', 'carrinho_compra'))
+    carrinho_.remove(product_name)
+    redis_cnn.hset(f'usuario:{user_id["email"]}', 'carrinho_compra', json.dumps(carrinho_))
+    return redirect(url_for('account'))
 
 @app.route('/add_to_cart/?<product_name>', methods=['POST'])
 def add_to_cart(product_name):
@@ -240,10 +255,38 @@ def add_to_cart(product_name):
         cart_shop = json.loads(redis_cnn.hget(f'usuario:{user["email"]}', 'carrinho_compra'))
         cart_shop.append(product_name)
         redis_cnn.hset(f'usuario:{user["email"]}', 'carrinho_compra', json.dumps(cart_shop))
-        session['username'] = redis_cnn.hgetall(f'usuario:{user["email"]}')
         return redirect(url_for('index', message_login='success'))
     else:
         return redirect(url_for('index', message_login='failure'))
+
+@app.route('/checkout', methods=['POST'])
+def purchase_complete():
+    user_id = session['username']
+    # Precisamos passar os items que estão no carrinho de compra para o histórico de pedidos
+    data_compra = datetime.today().strftime("%d/%m/%Y")
+    carrinho_compra = json.loads(redis_cnn.hget(f'usuario:{user_id["email"]}', 'carrinho_compra'))
+    historico_pedidos = json.loads(redis_cnn.hget(f'usuario:{user_id["email"]}', 'historico_pedidos'))
+    
+    if not historico_pedidos:
+        historico_pedidos = {}
+
+    if data_compra not in historico_pedidos.keys():
+        historico_pedidos[data_compra] = []
+    
+    # Agora iremos adicionar os produtos que estão no carrinho, nesta chave criada no historico
+    for product_name in carrinho_compra:
+        product = get_single_product(product_name)
+        product['desconto'] = get_single_discount(product_name)
+        if product['desconto']:
+            product['valor_desconto'] = round(float(product['valor']) * (1 - float(product['desconto']) / 100), 2)
+        historico_pedidos[data_compra].append(product)
+
+    carrinho_compra = []
+    
+    # atualiza as informacoes do usuario
+    redis_cnn.hset(f'usuario:{user_id["email"]}', 'carrinho_compra', json.dumps(carrinho_compra))
+    redis_cnn.hset(f'usuario:{user_id["email"]}', 'historico_pedidos', json.dumps(historico_pedidos))
+    return redirect(url_for('account'))
 
 if __name__ == '__main__':
     app.run(debug=True)
