@@ -102,8 +102,17 @@
         {% if user_logged_in.carrinho_compra %}
             {% for ccompra in user_logged_in.carrinho_compra %}
             <div class="row mb-3 border rounded p-2">
+                <div class="row-12">
+                    <div class="col">
+                        <form action="{{ url_for('remove_product_cart', product_name=ccompra.nome) }}" method='POST'>
+                            <button class="btn btn-danger fw-bold btn-sm" type="submit">
+                                X
+                            </button>
+                        </form>
+                    </div>
+                </div>
                 <div class="col col-sm-2 col-md-2 col-lg-2">
-                    <span><img src="data:image/png;base64,{{ ccompra.imagem }}" width="100px"></span>
+                    <span><img src="data:image/png;base64,{{ ccompra.imagem }}" width="100px" class="rounded"></span>
                 </div>
                 <div class="col col-sm-3 col-md-3 col-lg-3 d-flex justify-content-left align-items-center">
                     <span class="fs-5 text-uppercase fw-bold">
@@ -154,7 +163,9 @@
             {% endfor %}
             <div class="row">
                 <div class="col text-center">
-                    <button action="" class="btn btn-success fw-bold fs-5" type="submit">FINALIZAR COMPRA</button>
+                    <form action="{{ url_for( 'purchase_complete' ) }}" method="POST">
+                        <button class="btn btn-success fw-bold fs-5" type="submit">FINALIZAR COMPRA</button>
+                    </form>
                 </div>
             </div>
         {% else %}
@@ -175,57 +186,62 @@
         </div>
         <!-- Cada produto sendo adicionado aqui -->
         {% if user_logged_in.historico_pedidos %}
-            {% for hpedido in user_logged_in.historico_pedidos %}
-            <div class="row mb-3 border rounded p-2">
-                <div class="col col-sm-2 col-md-2 col-lg-2">
-                    <span><img src="data:image/png;base64,{{ hpedido.imagem }}" width="100px"></span>
+            {% for chave, hpedido_lista in user_logged_in.historico_pedidos.items() %}
+                <div class="row-12 mb-3 p-2">
+                    <span class="fs-5">{{ chave }}</span>
                 </div>
-                <div class="col col-sm-3 col-md-3 col-lg-3 d-flex justify-content-left align-items-center">
-                    <span class="fs-5 text-uppercase fw-bold">
-                        {{ hpedido.nome }}
-                    </span>
+                {% for hpedido in hpedido_lista %}
+                <div class="row mb-3 border rounded p-2">
+                    <div class="col col-sm-2 col-md-2 col-lg-2">
+                        <span><img src="data:image/png;base64,{{ hpedido.imagem }}" width="100px" class="rounded"></span>
+                    </div>
+                    <div class="col col-sm-3 col-md-3 col-lg-3 d-flex justify-content-left align-items-center">
+                        <span class="fs-5 text-uppercase fw-bold">
+                            {{ hpedido.nome }}
+                        </span>
+                    </div>
+                    <div class="col offset-3 d-flex flex-column justify-content-around border-start">
+                        <div class="row border-bottom">
+                            <div class="col border-start">
+                                <span class="fs-6 fw-semibold">Valor:</span>
+                            </div>
+                            <div class="col border-start">
+                                <span class="fs-6">R$ {{ hpedido.valor }}</span>
+                            </div>
+                        </div>
+                        <div class="row border-bottom">
+                            <div class="col border-start">
+                                <span class="fs-6 fw-semibold">Quantidade:</span>
+                            </div>
+                            <div class="col border-start">
+                                <span class="fs-6">1</span>
+                            </div>
+                        </div>
+                        {% if hpedido.desconto and hpedido.desconto|float > 0.0 %}
+                        <div class="row border-bottom">
+                            <div class="col border-start">
+                                <span class="fs-6 fw-semibold">Desconto:</span>
+                            </div>
+                            <div class="col border-start">
+                                <span class="fs-6">{{ hpedido.desconto }}%</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="row">
+                            <div class="col border-start">
+                                <span class="fs-6 fw-semibold">Total:</span>
+                            </div>
+                            <div class="col border-start">
+                                {% if hpedido.desconto and hpedido.desconto|float > 0.0 %}
+                                <span class="fs-6">R$ {{ hpedido.valor_desconto }}</span>
+                                {% else %}
+                                <span class="fs-6">R$ {{ hpedido.valor }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col offset-3 d-flex flex-column justify-content-around border-start">
-                    <div class="row border-bottom">
-                        <div class="col border-start">
-                            <span class="fs-6 fw-semibold">Valor:</span>
-                        </div>
-                        <div class="col border-start">
-                            <span class="fs-6">R$ {{ hpedido.valor }}</span>
-                        </div>
-                    </div>
-                    <div class="row border-bottom">
-                        <div class="col border-start">
-                            <span class="fs-6 fw-semibold">Quantidade:</span>
-                        </div>
-                        <div class="col border-start">
-                            <span class="fs-6">1</span>
-                        </div>
-                    </div>
-                    {% if hpedido.desconto and hpedido.desconto|float > 0.0 %}
-                    <div class="row border-bottom">
-                        <div class="col border-start">
-                            <span class="fs-6 fw-semibold">Desconto:</span>
-                        </div>
-                        <div class="col border-start">
-                            <span class="fs-6">{{ hpedido.desconto }}%</span>
-                        </div>
-                    </div>
-                    {% endif %}
-                    <div class="row">
-                        <div class="col border-start">
-                            <span class="fs-6 fw-semibold">Total:</span>
-                        </div>
-                        <div class="col border-start">
-                            {% if hpedido.de6conto and hpedido.desconto|float > 0.0 %}
-                            <span class="fs-6">R$ {{ hpedido.valor_desconto }}</span>
-                            {% else %}
-                            <span class="fs-6">R$ {{ hpedido.valor }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% endfor %}
             {% endfor %}
         {% else %}
         <div class="row mb-3 p-2">
