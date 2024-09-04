@@ -291,8 +291,8 @@ def purchase_complete():
     redis_cnn.hset(f'usuario:{user_id["email"]}', 'historico_pedidos', json.dumps(historico_pedidos))
     return redirect(url_for('account'))
 
-@app.route('/queryes', methods=['POST', 'GET'])
-def queryes():
+@app.route('/queries', methods=['POST', 'GET'])
+def queries():
     resultado = None
 
     if request.method == 'POST':
@@ -364,7 +364,7 @@ def queryes():
         resultado = str(resultado)
     products = get_all_products()
 
-    return render_template('queryes.html', resultado=resultado, product_list=products)
+    return render_template('queries.html', resultado=resultado, product_list=products)
 
     None
 if __name__ == '__main__':
