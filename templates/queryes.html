@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    <title>Shopipipipi - Queryes</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>Consultas Redis</h1>
+        <p>Selecione uma consulta, preencha os campos necessários e execute para visualizar o resultado.</p>
+
+        <!-- Formulário para selecionar e executar consultas -->
+        <form id="consulta-form" method="post" action="{{ url_for('queryes') }}">
+            <div class="form-group">
+                <label for="consulta">Escolha uma consulta:</label>
+                <select id="consulta" name="consulta" class="form-control" onchange="toggleFields()">
+                    <option value="1">Listar todos os usuários registrados</option>
+                    <option value="2">Recuperar o nome e o email de um usuário específico</option>
+                    <option value="3">Verificar quais produtos estão no carrinho de compras de um usuário</option>
+                    <option value="4">Calcular o valor total do carrinho de compras de um usuário</option>
+                    <option value="5">Atualizar a quantidade de um produto</option>
+                    <option value="6">Recuperar todas as promoções válidas</option>
+                    <option value="7">Listar o histórico de pedidos de um usuário em uma data específica</option>
+                    <option value="8">Aplicar um desconto a um produto e calcular o valor com desconto</option>
+                    <!-- <option value="9">Remover um produto do carrinho de compras de um usuário</option> -->
+                    <option value="10">Verificar quais usuários têm um produto específico no carrinho de compras</option>
+                </select>
+            </div>
+
+            <!-- Campo de entrada para email -->
+            <div class="form-group" id="email-field" style="display:none;">
+                <label for="email">Email do Usuário:</label>
+                <input type="email" id="email" name="email" class="form-control">
+            </div>
+
+            <!-- Campo de entrada para nome do produto -->
+            <div class="form-group" id="produto-field" style="display:none;">
+                <label for="produto_nome">Nome do Produto:</label>
+                <select id="produto_nome" name="produto_nome" class="form-control w-75">
+                    {% for product in product_list %}
+                        <option value="{{ product.nome }}">{{ product.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Campo de entrada para quantidade do produto -->
+            <div class="form-group" id="quantidade-field" style="display:none;">
+                <label for="quantidade">Quantidade:</label>
+                <input type="number" id="quantidade" name="quantidade" class="form-control">
+            </div>
+
+            <!-- Campo de entrada para porcentagem do desconto -->
+            <div class="form-group" id="desconto-field" style="display:none;">
+                <label for="desconto">Desconto:</label>
+                <input type="number" id="desconto" name="desconto" class="form-control">
+            </div>
+
+            <!-- Campo de entrada para expiracao da promocao -->
+            <div class="form-group" id="expiracao-field" style="display:none;">
+                <label for="expiracao">Expiração:</label>
+                <input type="datetime-local" id="expiracao" name="expiracao" class="form-control">
+            </div>
+
+            <!-- Campo de entrada para data específica -->
+            <div class="form-group" id="data-field" style="display:none;">
+                <label for="data">Data (dd/mm/yy):</label>
+                <input type="text" id="data" name="data" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Executar Consulta</button>
+            </div>
+        </form>
+
+        <!-- Área para exibir os resultados -->
+        {% if resultado %}
+            <h2>Resultado da Consulta</h2>
+            <pre>{{ resultado }}</pre>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleFields() {
+            var consulta = document.getElementById('consulta').value;
+
+            // Reset fields visibility
+            document.getElementById('email-field').style.display = 'none';
+            document.getElementById('produto-field').style.display = 'none';
+            document.getElementById('quantidade-field').style.display = 'none';
+            document.getElementById('data-field').style.display = 'none';
+            document.getElementById('desconto-field').style.display = 'none';
+
+
+            // Show/hide fields based on selected query
+            if (consulta == '2' || consulta == '3' || consulta == '4' || consulta == '7' || consulta == '9') {
+                document.getElementById('email-field').style.display = 'block';
+            }
+
+            if (consulta == '5' || consulta == '8' || consulta == '9' || consulta == '10') {
+                document.getElementById('produto-field').style.display = 'block';
+            }
+
+            if (consulta == '5') {
+                document.getElementById('quantidade-field').style.display = 'block';
+            }
+
+            if (consulta == '8') {
+                document.getElementById('desconto-field').style.display = 'block';
+                document.getElementById('expiracao-field').style.display = 'block';
+            }
+
+            if (consulta == '7') {
+                document.getElementById('data-field').style.display = 'block';
+            }
+        }
+    </script>
+{% endblock %}
