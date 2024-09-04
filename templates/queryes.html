@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    <title>Shopipipipi - Queryes</title>
+    <title>Shopipipipi - Queries</title>
 {% endblock %}
 
 {% block content %}
@@ -10,7 +10,7 @@
         <p>Selecione uma consulta, preencha os campos necessários e execute para visualizar o resultado.</p>
 
         <!-- Formulário para selecionar e executar consultas -->
-        <form id="consulta-form" method="post" action="{{ url_for('queryes') }}">
+        <form id="consulta-form" method="post" action="{{ url_for('queries') }}">
             <div class="form-group">
                 <label for="consulta">Escolha uma consulta:</label>
                 <select id="consulta" name="consulta" class="form-control" onchange="toggleFields()">
