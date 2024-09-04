@@ -7,7 +7,7 @@ from os.path import join
 
 # Iniciando a aplicação Flask
 app = Flask(__name__)
-app.secret_key = '123123abcde1123'
+app.secret_key = 'Sua Senha Aqui'
 
 # Iniciando a conexão com o Redis
 redis_cnn = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
@@ -154,9 +154,12 @@ def create_discount(data_expiracao, desconto, nome):
     data_expiracao = datetime.strptime(data_expiracao, '%Y-%m-%dT%H:%M')
     tempo_expiracao = int((data_expiracao - data_atual).total_seconds())
 
+    valor_produto = redis_cnn.hget(f'produto:{nome}', 'valor')
+
     if tempo_expiracao > 0:
         promocao = {
             'desconto': desconto,
+            'valor_desconto':  round(float(valor_produto) * (1 - float(desconto) / 100), 2),
             'nome': nome
         }
         redis_cnn.hset(f'promocao:{nome}', mapping=promocao)  # O nome será a chave do hash da promoção
@@ -288,5 +291,81 @@ def purchase_complete():
     redis_cnn.hset(f'usuario:{user_id["email"]}', 'historico_pedidos', json.dumps(historico_pedidos))
     return redirect(url_for('account'))
 
+@app.route('/queryes', methods=['POST', 'GET'])
+def queryes():
+    resultado = None
+
+    if request.method == 'POST':
+        consulta = request.form.get('consulta')
+
+        if consulta == '1':
+            resultado = redis_cnn.keys('usuario:*')
+
+        elif consulta == '2':
+            email = request.form.get('email')
+            resultado = redis_cnn.hmget(f'usuario:{email}', 'nome', 'email')
+
+        elif consulta == '3':
+            email = request.form.get('email')
+            carrinho = json.loads(redis_cnn.hget(f'usuario:{email}', 'carrinho_compra'))
+            produtos_carrinho = [get_single_product(produto) for produto in carrinho]
+            resultado = produtos_carrinho if carrinho else 'Carrinho vazio'
+
+        elif consulta == '4':
+            email = request.form.get('email')
+            carrinho = json.loads(redis_cnn.hget(f'usuario:{email}', 'carrinho_compra'))
+            produtos_carrinho = [get_single_product(produto) for produto in carrinho]
+            print(produtos_carrinho)
+            resultado = sum(float(produto['valor']) if not (float(produto['desconto']) > 0) else float(produto['valor_desconto']) for produto in produtos_carrinho)
+
+        elif consulta == '5':
+            produto_nome = request.form.get('produto_nome')
+            quantidade = request.form.get('quantidade')
+            redis_cnn.hset(f'produto:{produto_nome}', 'quantidade', quantidade)
+            resultado = f'Quantidade do produto {produto_nome} atualizada para {quantidade}.'
+
+        elif consulta == '6':
+            resultado = [key for key in redis_cnn.keys('promocao:*') if redis_cnn.ttl(key) > 0]
+
+        elif consulta == '7':
+            email = request.form.get('email')
+            data = request.form.get('data')
+            historico = json.loads(redis_cnn.hget(f'usuario:{email}', 'historico_pedidos'))
+            resultado = historico.get(data, [])
+            
+        elif consulta == '8':
+            produto_nome = request.form.get('produto_nome')
+            desconto = request.form.get('desconto')
+            expiracao = request.form.get('expiracao')
+            create_discount(expiracao, desconto, produto_nome)
+            valor_com_desconto = redis_cnn.hget(f'promocao:{produto_nome}', 'valor_desconto')
+            resultado = f'Desconto aplicado. Novo valor do produto {produto_nome}: {valor_com_desconto}'
+
+        elif consulta == '9':
+            email = request.form.get('email')
+            produto_nome = request.form.get('produto_nome')
+            carrinho = json.loads(redis_cnn.hget(f'usuario:{email}', 'carrinho_compra'))
+            carrinho = [produto for produto in carrinho if produto['nome'] != produto_nome]
+            redis_cnn.hset(f'usuario:{email}', 'carrinho_compra', json.dumps(carrinho))
+            resultado = f'Produto {produto_nome} removido do carrinho de {email}.'
+
+        elif consulta == '10':
+            produto_nome = request.form.get('produto_nome')
+            usuarios = redis_cnn.keys('usuario:*')
+            usuarios_com_produto = []
+            for usuario in usuarios:
+                carrinho = json.loads(redis_cnn.hget(usuario, 'carrinho_compra'))
+                if any(produto == produto_nome for produto in carrinho):
+                    usuarios_com_produto.append(usuario)
+            print("ate aqui foi")
+            resultado = usuarios_com_produto if usuarios_com_produto else f"Não há usuários com o produto {produto_nome} no carrinho."
+
+        # Converta o resultado para string se necessário
+        resultado = str(resultado)
+    products = get_all_products()
+
+    return render_template('queryes.html', resultado=resultado, product_list=products)
+
+    None
 if __name__ == '__main__':
     app.run(debug=True)
